@@ -17,11 +17,11 @@ def translate_wav(raw_bytes, n_frames, n_channels, sample_width):
     return channels
 
 def high_pass_running_mean(channel, window_size):
-	# creates a 1d filter of size window_size
-	# like a 1d edge detector, looks like: [-1,-1, 4,-1,-1]
+	# creates a 1d filter of size window_size, like a 1d edge detector, looks like: [-1,-1, 4,-1,-1]
+	# does a 1d convolvution with channel
 	array = np.full(window_size, -1)
 	array[window_size//2] = window_size - 1
-	return np.convolve(channel, array, 'valid')/window_size
+	return np.convolve(channel, array, 'valid') / window_size
 
 def low_pass_running_mean(channel, window_size):
 	# does a cumulative sum, and inserts 0 at 0 position to balance edge case
@@ -46,24 +46,25 @@ def moving_average_filter(cutoff_frequency, frame_rate, channels, filter_type):
 	return filtered_wav
 
 def filter_wav(in_file, out_file, cutoff_frequency, filter_type):
+	# open wav
 	in_wav = wave.open(in_file, 'rb')
 
+	# get info about wav
 	frame_rate = in_wav.getframerate()
 	sample_width = in_wav.getsampwidth()
 	n_channels = in_wav.getnchannels()
 	n_frames = in_wav.getnframes()
 	comp_type = in_wav.getcomptype()
 	comp_name = in_wav.getcompname()
-
 	signal = in_wav.readframes(n_frames * n_channels)
 	in_wav.close()
 
-	#Get channels of wav
+	# get channels of wav
 	channels = translate_wav(signal, n_frames, n_channels, sample_width)
-	#filter wav either high pass or low pass
+	# filter wav with the filter type
 	filtered_wav = moving_average_filter(cutoff_frequency, frame_rate, channels, filter_type)
 	
-
+	# write to new wav
 	filtered_wav_file = wave.open(out_file, "w")
 	filtered_wav_file.setparams((1, sample_width, frame_rate, n_frames, comp_type, comp_name))
 	filtered_wav_file.writeframes(filtered_wav.tobytes('C'))
@@ -75,7 +76,7 @@ def main():
 		print("<input file> path to input wav file")
 		print("<output file> path to output wav file")
 		print("<cutoff frequency> frequency filter attenuates")
-		print("<filter type> \"low\" \"high\" \"band\"")
+		print("<filter type> \"low\" \"high\"")
 	elif len(sys.argv) == 5:
 		input_file = sys.argv[1]
 		output_file = sys.argv[2]
