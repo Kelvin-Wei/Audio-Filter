@@ -85,7 +85,8 @@ if __name__ == "__main__":
     parser.add_argument('--input_file', type=str, help='input WAV file')
     parser.add_argument('--output_file', type=str, help='output WAV file')
     parser.add_argument('--cut_freq', type=int, help='cutoff frequency (Hz)', default=400)
-    parser.add_argument('--filter_type', type=str, help='"low" or "high" pass filter', default='high')
+    parser.add_argument('--filter_type', type=str, choices = ['low', 'high'],
+                        help='"low" or "high" pass filter', default='high')
     
     if len(sys.argv) < 2:
         parser.print_usage()
