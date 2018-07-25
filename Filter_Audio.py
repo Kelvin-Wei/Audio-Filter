@@ -1,6 +1,9 @@
+from __future__ import division
+
 import wave
 import math
 import sys
+import argparse
 import numpy as np
 
 def translate_wav(raw_bytes, n_frames, n_channels, sample_width):
@@ -19,7 +22,7 @@ def translate_wav(raw_bytes, n_frames, n_channels, sample_width):
 def high_pass_running_mean(channel, window_size):
 	# creates a 1d filter of size window_size, like a 1d edge detector, looks like: [-1,-1, 4,-1,-1]
 	# does a 1d convolvution with channel
-	array = np.full(window_size, -1)
+	array = np.full(window_size, -1, dtype='float64')
 	array[window_size//2] = window_size - 1
 	return np.convolve(channel, array, 'valid') / window_size
 
@@ -71,20 +74,25 @@ def filter_wav(in_file, out_file, cutoff_frequency, filter_type):
 	filtered_wav_file.close()
 
 
-def main():
-	if len(sys.argv) == 2 and sys.argv[1] == "help":
-		print("<input file> path to input wav file")
-		print("<output file> path to output wav file")
-		print("<cutoff frequency> frequency filter attenuates")
-		print("<filter type> \"low\" \"high\"")
-	elif len(sys.argv) == 5:
-		input_file = sys.argv[1]
-		output_file = sys.argv[2]
-		cutoff_frequency = int(sys.argv[3])
-		filter_type = sys.argv[4]
-		filter_wav(input_file, output_file, cutoff_frequency, filter_type)
-	else:
-		print("Command line arguments: <input file> <output file> <cutoff frequency> <filter type>")
+def main(args):
+    filter_wav(args.input_file,
+               args.output_file, 
+               args.cut_freq, 
+               args.filter_type)
 
 if __name__ == "__main__":
-	main()
+    parser = argparse.ArgumentParser(description='Filter WAV file.')
+    parser.add_argument('--input_file', type=str, help='input WAV file')
+    parser.add_argument('--output_file', type=str, help='output WAV file')
+    parser.add_argument('--cut_freq', type=int, help='cutoff frequency (Hz)', default=400)
+    parser.add_argument('--filter_type', type=str, help='"low" or "high" pass filter', default='high')
+    
+    if len(sys.argv) < 2:
+        parser.print_usage()
+        sys.exit(0)
+    main(parser.parse_args())
+
+
+
+
+
